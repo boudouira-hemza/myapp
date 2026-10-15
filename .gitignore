@@ -1,4 +1,44 @@
+ ```gitignore
+# Environment variables and secrets
 .env
-.env*
+.env.*
+!.env.example
+!.env.production.example
+
+# Dependencies
 node_modules/
 
+# Development / learning files
+dsa/
+test.js
+
+# Database files and backups
+database/init/blog.sql
+*.sql.gz
+*.dump
+*.bak
+*.backup
+*.db
+*.sqlite
+*.sqlite3
+
+# Private keys and TLS certificates
+nginx/certs/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+*.srl
+
+# Uploaded files
+storage/**
+!storage/.gitkeep
+
+# Build output and coverage
+dist/
+coverage/
+
+# Logs
+*.log

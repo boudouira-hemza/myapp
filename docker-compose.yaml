@@ -1,0 +1,136 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+
+
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+    command: ["node", "index.js"]
+
+    volumes:
+     - blog_storage:/app/storage/images
+
+    expose:
+      - "3000"
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    networks:
+      - frontend
+      - backend
+
+  app2:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+    command: ["node", "index.js"]
+
+    volumes:
+      - blog_storage:/app/storage/images
+
+    expose:
+      - "3000"
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    networks:
+      - frontend
+      - backend
+    
+
+  
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      test:
+        ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - backend
+
+  nginx:
+    image: hemza-nginx:local
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+       SERVER_NAME: ${SERVER_NAME}
+       NGINX_ENVSUBST_FILTER: '^(SERVER_NAME)$'
+    ports:
+      - "8081:80"
+      - "443:443"
+
+    volumes:
+      - ${NGINX_CONF_FILE}:/etc/nginx/templates/default.conf.template:ro
+      - ${NGINX_CERTS_DIR}:/etc/nginx/certs:ro
+
+    depends_on:
+      - app
+      - app2
+
+    networks:
+      - frontend
+
+volumes:
+
+  mysql_data:
+    name: blog_mysql_data_v10
+  blog_storage:
+
+networks:
+  frontend:
+  backend:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
